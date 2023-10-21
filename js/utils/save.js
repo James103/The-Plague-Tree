@@ -1,6 +1,7 @@
 
 // ************ Save stuff ************
 var logSave = false
+var NaNcheckstack = []
 function save(force) {
 	let t = new Date().getTime()
 	if (logSave) console.log("saved at " + t)
@@ -247,6 +248,7 @@ function setupModInfo() {
 }
 
 function fixNaNs() {
+	NaNcheckstack = []
 	NaNcheck(player)
 }
 
@@ -255,20 +257,27 @@ function NaNcheck(data) {
 		if (data[item] == null) {
 		}
 		else if (Array.isArray(data[item])) {
+			NaNcheckstack.push(item)
 			NaNcheck(data[item])
+			NaNcheckstack.pop(item)
 		}
 		else if (data[item] !== data[item] || checkDecimalNaN(data[item])) {
 			if (!NaNalert) {
 				clearInterval(interval);
 				NaNalert = true;
-				alert("Invalid value found in player, named '" + item + "'. Please let the creator of this mod know! You can refresh the page, and you will be un-NaNed.")
+				NaNcheckstack.push(item)
+				console.error("Invalid value found in player, at 'player." + NaNcheckstack.join(".") + "'.")
+				alert("Invalid value found in player, at 'player." + NaNcheckstack.join(".") + "'. Please let the creator of this mod know! You can refresh the page, and you will be un-NaNed.")
+				NaNcheckstack.pop(item)
 				return
 			}
 		}
 		else if (data[item] instanceof Decimal) {
 		}
 		else if ((!!data[item]) && (data[item].constructor === Object)) {
+			NaNcheckstack.push(item)
 			NaNcheck(data[item])
+			NaNcheckstack.pop(item)
 		}
 	}	
 }
